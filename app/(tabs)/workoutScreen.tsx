@@ -8,18 +8,21 @@ import { DrillContext } from '@/app/_layout';
 import { formattedTime } from '@/libraries/utility';
 import DrillCard from '../../components/DrillCard';
 import { useFocusEffect } from 'expo-router';
+import { useKeepAwake } from 'expo-keep-awake';
 
 const colours = useColours();
 
 export default function workoutScreen() {
 
+    
     const [currentDrill, setCurrentDrill] = useState(0);
     const [workoutTime, setWorkoutTime] = useState("0");
     const [restTime, setRestTime] = useState("0");
     const [seconds, setSeconds] = useState("0");
     const [isRunning, setIsRunning] = useState(false);
     const [isResting, setIsResting] = useState(false);
-
+    
+    useKeepAwake(); // Prevent the screen from sleeping
 
     // Contexts
     const drillContext = useContext(DrillContext);
