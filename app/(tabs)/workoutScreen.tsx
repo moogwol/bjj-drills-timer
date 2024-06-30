@@ -267,10 +267,10 @@ export default function workoutScreen() {
             </View>
             <View style={styles.buttonContainer}>
                 <View style={styles.button}>
-                    <Button buttonColor={colours.secondary} onPress={handleClickStartStop} mode='contained' >{isRunning ? "Stop" : "Start"}</Button>
+                    <Button buttonColor={colours.primary} onPress={handleClickStartStop} mode='contained' >{isRunning ? "Stop" : "Start"}</Button>
                 </View>
                 <View style={styles.button}>
-                    <Button buttonColor={colours.secondary} onPress={handleClickReset} mode='contained' >Reset</Button>
+                    <Button buttonColor={colours.primary} onPress={handleClickReset} mode='contained' >Reset</Button>
                 </View>
             </View>
         </View>
