@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Icon } from "react-native-paper";
+import { Icon, MD3LightTheme } from "react-native-paper";
 import { useColours } from "@/constants/Colors";
 import { StyleSheet } from "react-native";
 
@@ -19,7 +19,7 @@ export default function RootLayout() {
           tabBarStyle: styles.tabBar,
           headerTitle: "Home",
           tabBarIcon: ({ color, size }) => (
-            <Icon source="home" color={color} size={size} />
+            <Icon source="home" color={colours.light} size={size} />
           ),
         }}
       />
@@ -33,7 +33,7 @@ export default function RootLayout() {
           headerTitle: "Workout",
           tabBarIconStyle: styles.icon,
           tabBarIcon: ({ color, size }) => (
-            <Icon source="run" color={color} size={size} />
+            <Icon source="run" color={colours.light} size={size} />
           ),
         }} />
     </Tabs>

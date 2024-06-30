@@ -84,7 +84,7 @@ export default function Index() {
           />
           <List.Item style={styles.listItem}
             titleStyle={styles.listItemTitle}
-            title={["Basic", "Drills"]}
+            title="Basic"
             onPress={handleClickBasicDrills}
           />
         </List.Accordion>
