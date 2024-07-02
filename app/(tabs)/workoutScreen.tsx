@@ -57,10 +57,12 @@ export default function workoutScreen() {
         useCallback(() => {
             // This code runs when the screen is focused
             setIsResting(false);
+            setFinished(false);
 
             return () => {
                 // This code runs when the screen goes out of focus
                 // Optional: Reset any states if needed when leaving the screen
+                setFinished(false);
             };
         }, [])
     );
@@ -118,7 +120,7 @@ export default function workoutScreen() {
     // A function to render the 'workout finished' message
     const renderFinished = () => {
         return (
-            <View style={{ width: windowWidth }} >
+            <View style={{ flex: 1, width: windowWidth }} >
                 <DrillCard style={styles.card}
                     title="Workout Finished!" />
             </View>
@@ -243,6 +245,7 @@ export default function workoutScreen() {
 
     const handleClickReset = () => {
         setSeconds(workoutTime);
+        setFinished(false);
     }
 
     // Disable the next and previous buttons when the current drill is at the beginning or end of the drill list
@@ -307,7 +310,7 @@ const styles = StyleSheet.create({
     card: {
         flex: 2,
         backgroundColor: colours.primary,
-        borderColor: colours.secondary,
+        borderColor: colours.light,
         borderWidth: 5,
     },
     buttonContainer: {
