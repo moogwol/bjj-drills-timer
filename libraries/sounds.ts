@@ -3,6 +3,7 @@ import { Audio } from "expo-av";
 // Sounds
 const singleBell = require("@/assets/sounds/single-bell.mp3");
 const tripleBell = require("@/assets/sounds/triple-bell.mp3");
+const alarm = require("@/assets/sounds/biohazard-alarm.mp3");
 
 
 // Function to play a sound
@@ -24,4 +25,8 @@ export const playSingleBell = async () => {
 
 export const playTripleBell = async () => {
     await playSound(tripleBell);
+}
+
+export const playAlarm = async () => {
+    await playSound(alarm);
 }

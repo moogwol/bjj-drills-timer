@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useContext, useCallback } from 'react';
 import { IconButton, Button, Text } from 'react-native-paper';
 import Countdown from '@/components/Countdown';
 import { useColours } from '@/constants/Colors';
-import { playSingleBell } from '@/libraries/sounds';
+import { playSingleBell, playAlarm } from '@/libraries/sounds';
 import { DrillContext } from '@/app/_layout';
 import { formattedTime } from '@/libraries/utility';
 import DrillCard from '../../components/DrillCard';
@@ -14,14 +14,15 @@ const colours = useColours();
 
 export default function workoutScreen() {
 
-    
+
     const [currentDrill, setCurrentDrill] = useState(0);
     const [workoutTime, setWorkoutTime] = useState("0");
     const [restTime, setRestTime] = useState("0");
     const [seconds, setSeconds] = useState("0");
     const [isRunning, setIsRunning] = useState(false);
     const [isResting, setIsResting] = useState(false);
-    
+    const [finished, setFinished] = useState(false);
+
     useKeepAwake(); // Prevent the screen from sleeping
 
     // Contexts
@@ -114,6 +115,16 @@ export default function workoutScreen() {
             />)
     }
 
+    // A function to render the 'workout finished' message
+    const renderFinished = () => {
+        return (
+            <View style={{ width: windowWidth }} >
+                <DrillCard style={styles.card}
+                    title="Workout Finished!" />
+            </View>
+        )
+    }
+
 
     // Start the countdown when the isRunning state is true
     useEffect(() => {
@@ -177,10 +188,12 @@ export default function workoutScreen() {
             setSeconds(workoutTime);
         }
         // if the seconds are zero and the current drill is equal to the drill count and the isResting state is false
+        // ie the workout has finished
         if (seconds === "0" && currentDrill === drillCount - 1 && !isResting) {
             // setIsResting(true);
             setIsRunning(false);
             setSeconds(restTime);
+            setFinished(true);
         }
         // if the seconds are zero and the current drill is equal to the drill count and the isResting state is true
         if (seconds === "0" && currentDrill === drillCount - 1 && isResting) {
@@ -195,11 +208,13 @@ export default function workoutScreen() {
     useEffect(() => {
         if (initialRender.current) {
             initialRender.current = false;
-        } else if (seconds === "0" && isRunning) {
+        } else if (seconds === "0" && isRunning && currentDrill < drillCount - 1) {
             playSingleBell();
             console.log("Sound played");
+        } else if (finished) {
+            playAlarm();
         }
-    }, [seconds]);
+    }, [seconds, finished]);
 
 
     // User input and button functions
@@ -243,7 +258,7 @@ export default function workoutScreen() {
     return (
         <View style={styles.container} >
             <View style={styles.slideContainer}>
-                {renderSlideDeck()}
+                {!finished ? renderSlideDeck() : renderFinished()}
             </View>
             <View style={styles.buttonContainer}>
                 <IconButton disabled={previousButtonDisabled()} size={30} style={styles.button} rippleColor={colours.light} icon={'arrow-left-bold-outline'} iconColor={colours.light} containerColor={colours.accent} onPress={handleClickPrevious} />
