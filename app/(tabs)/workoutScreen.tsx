@@ -9,6 +9,8 @@ import { formattedTime } from '@/libraries/utility';
 import DrillCard from '../../components/DrillCard';
 import { useFocusEffect } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
+import { VideoModal } from '@/components/VideoModal';
+
 
 const colours = useColours();
 
@@ -22,6 +24,7 @@ export default function workoutScreen() {
     const [isRunning, setIsRunning] = useState(false);
     const [isResting, setIsResting] = useState(false);
     const [finished, setFinished] = useState(false);
+    const [videoModalVisible, setVideoModalVisible] = useState(false);
 
     useKeepAwake(); // Prevent the screen from sleeping
 
@@ -260,6 +263,12 @@ export default function workoutScreen() {
 
     return (
         <View style={styles.container} >
+            <VideoModal title={drills.length > 0 ? drills[currentDrill].name : "No drills"}
+                // videoUrl="https://bjj-world.com/wp-content/uploads/2018/06/Turtle-roll-escape.gif"
+                videoURL={drills.length > 0 ? drills[currentDrill].video_url : "https://bjj-world.com/wp-content/uploads/2018/06/Turtle-roll-escape.gif"}
+                visible={videoModalVisible}
+                onDismiss={() => setVideoModalVisible(false)}
+            />
             <View style={styles.slideContainer}>
                 {!finished ? renderSlideDeck() : renderFinished()}
             </View>
@@ -292,6 +301,9 @@ export default function workoutScreen() {
                 </View>
                 <View style={styles.button}>
                     <Button buttonColor={colours.primary} onPress={handleClickReset} mode='contained' >Reset</Button>
+                </View>
+                <View style={styles.button}>
+                    <Button buttonColor={colours.primary} onPress={() => setVideoModalVisible(true)} mode='contained' >Video</Button>
                 </View>
             </View>
         </View>

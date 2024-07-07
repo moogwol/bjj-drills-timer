@@ -5,7 +5,3 @@ const PUBLIC_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
  
 export const supabase = createClient(SUPABASE_URL, PUBLIC_ANON_KEY);
 
-export interface Drill {
-    id: number;
-    name: string;
-  }

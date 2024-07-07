@@ -6,6 +6,7 @@ import { PaperProvider, MD2LightTheme, MD3Colors, MD2DarkTheme, MD3LightTheme } 
 export interface Drill {
   id: number;
   name: string;
+  video_url : string;
 }
 
 import React from 'react';

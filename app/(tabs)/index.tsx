@@ -3,16 +3,12 @@ import { useContext, useState } from "react";
 import { List, Text, IconButton } from "react-native-paper";
 import { useColours } from "@/constants/Colors";
 import { fetchAllDrills, fetchRandomDrills, fetchDrillByTag } from "@/libraries/http";
-import { DrillContext } from "@/app/_layout";
+import { Drill, DrillContext } from "@/app/_layout";
 import { router } from "expo-router";
 import { NumberPicker } from "@/components/NumberPicker";
 
 const colours = useColours();
 
-export interface Drill {
-  id: number;
-  name: string;
-}
 
 export default function Index() {
 
