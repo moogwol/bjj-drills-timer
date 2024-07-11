@@ -20,6 +20,7 @@ export default function Index() {
   const [basicChecked, setBasicChecked] = useState(false);
   const [advancedChecked, setAdvancedChecked] = useState(false);
   const [takedownsChecked, setTakedownsChecked] = useState(false);
+  const [roundsOnlyChecked, setRoundsOnlyChecked] = useState(false);
 
 
   // Check if the context is defined
@@ -30,17 +31,29 @@ export default function Index() {
   const { drills, setDrills } = drillContext;
 
 
+  // Handle the click event for the "Go to workout" button  
   const handleClickGoToWorkout = async () => {
-    const tags = [];
-    if (judoChecked) tags.push('judo');
-    if (basicChecked) tags.push('basic');
-    if (advancedChecked) tags.push('advanced');
-    if (takedownsChecked) tags.push('takedown');
-    console.log('Chosen tags:', tags);
-    const data = await fetchDrillsByTags(tags, numDrills);
-    setDrills(data as Drill[]);
-    console.log(data);
-    router.push('/workoutScreen');
+    if (!roundsOnlyChecked) {
+      // Get the drills from the database
+      const tags = [];
+      if (judoChecked) tags.push('judo');
+      if (basicChecked) tags.push('basic');
+      if (advancedChecked) tags.push('advanced');
+      if (takedownsChecked) tags.push('takedown');
+      console.log('Chosen tags:', tags);
+      const data = await fetchDrillsByTags(tags, numDrills);
+      setDrills(data as Drill[]);
+      console.log(data);
+      router.push('/workoutScreen')
+    } else {
+      // Create an array of round with the round number
+      const drills = []
+      for (let i = 0; i < numDrills; i++) {
+        drills.push({ name: 'Round ' + (i + 1) });
+        router.push('/workoutScreen')
+      }
+      setDrills(drills as Drill[]);
+    }
   }
 
   const handleClickDecrementDrills = async () => {
@@ -54,7 +67,7 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      <NumberPicker title="Number of drills"
+      <NumberPicker title={`Number of ${roundsOnlyChecked ? 'rounds' : 'drills'}`}
         decrement={handleClickDecrementDrills}
         increment={handleClickIncrementDrills}
         num={numDrills}
@@ -62,10 +75,11 @@ export default function Index() {
 
       <List.Section style={styles.accordionSection}>
         <List.Accordion title="Choose your drills" titleStyle={styles.accordion} style={styles.accordion} >
-          <Checkbox.Item label="Judo" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={judoChecked ? 'checked' : 'unchecked'} onPress={() => setJudoChecked(!judoChecked)} />
-          <Checkbox.Item label="Basic" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={basicChecked ? 'checked' : 'unchecked'} onPress={() => setBasicChecked(!basicChecked)} />
-          <Checkbox.Item label="Advanced" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={advancedChecked ? 'checked' : 'unchecked'} onPress={() => setAdvancedChecked(!advancedChecked)} />
-          <Checkbox.Item label="Takedowns" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={takedownsChecked ? 'checked' : 'unchecked'} onPress={() => setTakedownsChecked(!takedownsChecked)} />
+          <Checkbox.Item label="Rounds only" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={roundsOnlyChecked ? 'checked' : 'unchecked'} onPress={() => setRoundsOnlyChecked(!roundsOnlyChecked)} />
+          <Checkbox.Item label="Judo" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={judoChecked ? 'checked' : 'unchecked'} disabled={roundsOnlyChecked} onPress={() => setJudoChecked(!judoChecked)} />
+          <Checkbox.Item label="Basic" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={basicChecked ? 'checked' : 'unchecked'} disabled={roundsOnlyChecked} onPress={() => setBasicChecked(!basicChecked)} />
+          <Checkbox.Item label="Advanced" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={advancedChecked ? 'checked' : 'unchecked'} disabled={roundsOnlyChecked} onPress={() => setAdvancedChecked(!advancedChecked)} />
+          <Checkbox.Item label="Takedowns" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={takedownsChecked ? 'checked' : 'unchecked'} disabled={roundsOnlyChecked} onPress={() => setTakedownsChecked(!takedownsChecked)} />
         </List.Accordion>
       </List.Section>
       <Button mode="contained" onPress={handleClickGoToWorkout}>Go to workout</Button>
