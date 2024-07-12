@@ -14,9 +14,9 @@ export const NumberPicker = (props: NumberPickerProps) => {
         <View style={styles.container}>
             <Text style={styles.text} variant="headlineSmall" >{props.title}</Text>
             <View style={styles.numberPicker}>
-                <IconButton icon="minus-thick" size={30} disabled={props.minusDisabled} onPress={props.decrement} />
+                <IconButton testID="decrement" icon="minus-thick" size={30} disabled={props.minusDisabled} onPress={props.decrement} />
                 <Text variant="displaySmall" >{props.num}</Text>
-                <IconButton icon="plus-thick" onPress={props.increment} />
+                <IconButton testID="increment" icon="plus-thick" onPress={props.increment} />
             </View>
         </View>
     )
