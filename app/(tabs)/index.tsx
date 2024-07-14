@@ -14,6 +14,7 @@ export default function Index() {
 
   const [numDrills, setNumDrills] = useState(1);
   const drillContext = useContext(DrillContext);
+  const [workouButtonDisabled, setWorkoutButtonDisabled] = useState(true);
 
   // Checkbox states
   const [judoChecked, setJudoChecked] = useState(false);
@@ -64,6 +65,15 @@ export default function Index() {
     setNumDrills(numDrills + 1);
   };
 
+  // Set the workout button to disabled if no checkboxes are checked
+  useEffect(() => {
+    if (roundsOnlyChecked || judoChecked || basicChecked || advancedChecked || takedownsChecked) {
+      setWorkoutButtonDisabled(false);
+    } else {
+      setWorkoutButtonDisabled(true);
+    }
+  }, [roundsOnlyChecked, judoChecked, basicChecked, advancedChecked, takedownsChecked]);  
+
 
   return (
     <View style={styles.container}>
@@ -82,7 +92,7 @@ export default function Index() {
           <Checkbox.Item label="Takedowns" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={takedownsChecked ? 'checked' : 'unchecked'} disabled={roundsOnlyChecked} onPress={() => setTakedownsChecked(!takedownsChecked)} />
         </List.Accordion>
       </List.Section>
-      <Button mode="contained" onPress={handleClickGoToWorkout}>Go to workout</Button>
+      <Button testID="workoutButton" disabled={workouButtonDisabled} buttonColor={colours.primary} mode="contained" onPress={handleClickGoToWorkout}>Go to workout</Button>
     </View>
   );
 }
