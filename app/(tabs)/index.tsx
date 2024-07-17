@@ -84,8 +84,8 @@ export default function Index() {
       />
 
       <List.Section style={styles.accordionSection}>
-        <List.Accordion title="Choose your drills" titleStyle={styles.accordion} style={styles.accordion} >
-          <Checkbox.Item label="Rounds only" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={roundsOnlyChecked ? 'checked' : 'unchecked'} onPress={() => setRoundsOnlyChecked(!roundsOnlyChecked)} />
+        <List.Accordion testID="accordion" title="Choose your drills" titleStyle={styles.accordion} style={styles.accordion} >
+          <Checkbox.Item testID="roundsCheckbox" label="Rounds only" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={roundsOnlyChecked ? 'checked' : 'unchecked'} onPress={() => setRoundsOnlyChecked(!roundsOnlyChecked)} />
           <Checkbox.Item label="Judo" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={judoChecked ? 'checked' : 'unchecked'} disabled={roundsOnlyChecked} onPress={() => setJudoChecked(!judoChecked)} />
           <Checkbox.Item label="Basic" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={basicChecked ? 'checked' : 'unchecked'} disabled={roundsOnlyChecked} onPress={() => setBasicChecked(!basicChecked)} />
           <Checkbox.Item label="Advanced" labelStyle={styles.checkboxLabel} color={colours.light} uncheckedColor={colours.light} status={advancedChecked ? 'checked' : 'unchecked'} disabled={roundsOnlyChecked} onPress={() => setAdvancedChecked(!advancedChecked)} />
