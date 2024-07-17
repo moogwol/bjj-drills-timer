@@ -2,6 +2,13 @@ import { supabase } from "@/constants/Supabase";
 import { Drill } from "@/app/_layout";
 
 
+/* ***Database tag_ids***
+ 1: basic
+ 2: advanced
+ 3: judo
+ 4: takedown
+*/
+
 // function to duplicate each element of an array
 function duplicateArrayElements(array: Drill[]) {
     return array.flatMap((item) => [item, item]);
@@ -44,49 +51,33 @@ export const fetchRandomDrills = async (num: number) => {
 
 
 
-// Fetch all drills having the specified tag from the database
-export const fetchDrillByTag = async (tag: string, num: number) => {
+// fetch all drills having the tag 'advanced' from the database
+export const fetchDrillsByTagIDs = async (tagIDs: number[], num: number ) => {
     try {
-        const { data, error } = await supabase.from('drills').select("*").contains('tags', [tag]);
-        if (error) throw error;
-        const shuffledData = shuffleArray(data);
-        const arraySlice = shuffledData.slice(0, num);
-        return duplicateArrayElements(arraySlice);
-    } catch (error) {
-        console.error("Error fetching drills: ", error);
-    }
-}
-
-
-// // Fetch all drills having the specified tags from the database
-// export const fetchDrillsByTags = async (tags: string[], num: number) => {
-//     try {
-//         const { data, error } = await supabase.from('drills').select().in('tags', ['judo', 'takedown']);
-//         if (error) throw error;
-//         const shuffledData = shuffleArray(data);
-//         const arraySlice = shuffledData.slice(0, num);
-//         return duplicateArrayElements(arraySlice);
-//     } catch (error) {
-//         console.error("Error fetching drills: ", error);
-//     }
-// }
-
-export const fetchDrillsByTags = async (tags: string[], num: number) => {
-    try {
-        // Adjust the query to use the ANY operator for array comparison
         const { data, error } = await supabase
-            .from('drills')
-            .select()
-            .or(tags.map(tag => `tags.cs.{${tag}}`).join(','));
-        
-        if (error) throw error;
-        const shuffledData = shuffleArray(data);
-        const arraySlice = shuffledData.slice(0, num);
-        return duplicateArrayElements(arraySlice);
-    } catch (error) {
-        console.error("Error fetching drills: ", error);
+            .from('drill_tags')
+            .select(`drills (id, name, video_url)`
+            )
+            .in('tag_id', tagIDs); // Assuming 'tag_id' refers to the tag's ID
+        // Assuming there is data, map over it and return the drills
+        if (data) {
+            const drills = data.flatMap(item => item.drills)
+            const shuffledData = shuffleArray(drills);
+            const arraySlice = shuffledData.slice(0, num);
+            console.log(arraySlice)
+            return duplicateArrayElements(arraySlice);
+        } else {
+            return []
+        }
     }
+    catch (error) {
+        console.error('Error fetching drills:', error);
+        return [];
+    }
+
 }
+
+
 
 
 

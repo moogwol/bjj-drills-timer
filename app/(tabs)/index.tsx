@@ -2,7 +2,7 @@ import { View, StyleSheet } from "react-native";
 import { useContext, useState, useEffect } from "react";
 import { List, Checkbox, Button } from "react-native-paper";
 import { useColours } from "@/constants/Colors";
-import { fetchDrillsByTags } from "@/libraries/http";
+import { fetchDrillsByTagIDs } from "@/libraries/http";
 import { Drill, DrillContext } from "@/app/_layout";
 import { router } from "expo-router";
 import { NumberPicker } from "@/components/NumberPicker";
@@ -37,13 +37,13 @@ export default function Index() {
     if (!roundsOnlyChecked) {
       // Get the drills from the database
       const tags = [];
-      if (judoChecked) tags.push('judo');
-      if (basicChecked) tags.push('basic');
-      if (advancedChecked) tags.push('advanced');
-      if (takedownsChecked) tags.push('takedown');
+      if (basicChecked) tags.push(1);
+      if (advancedChecked) tags.push(2);
+      if (judoChecked) tags.push(3);
+      if (takedownsChecked) tags.push(4);
       console.log('Chosen tags:', tags);
-      const data = await fetchDrillsByTags(tags, numDrills);
-      setDrills(data as Drill[]);
+      const data = await fetchDrillsByTagIDs(tags, numDrills);
+      setDrills(data as unknown as Drill[]);
       console.log(data);
       router.push('/workoutScreen')
     } else {
@@ -56,6 +56,8 @@ export default function Index() {
       setDrills(drills as Drill[]);
     }
   }
+
+
 
   const handleClickDecrementDrills = async () => {
     numDrills > 1 && setNumDrills(numDrills - 1);
