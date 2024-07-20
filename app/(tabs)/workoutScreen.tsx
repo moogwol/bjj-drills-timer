@@ -1,5 +1,5 @@
 import { View, StyleSheet, Dimensions, FlatList, Animated } from 'react-native';
-import { useState, useRef, useEffect, useContext, useCallback } from 'react';
+import { useState, useRef, useEffect, useContext, useCallback, useReducer } from 'react';
 import { IconButton, Button, Text } from 'react-native-paper';
 import Countdown from '@/components/Countdown';
 import { useColours } from '@/constants/Colors';
@@ -10,21 +10,27 @@ import DrillCard from '../../components/DrillCard';
 import { useFocusEffect } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
 import { VideoModal } from '@/components/VideoModal';
+import { workoutScreenReducer } from '@/reducers/WorkoutScreenReducer';
 
 
 const colours = useColours();
 
+
+
 export default function workoutScreen() {
 
+    const [state, dispatch] = useReducer(workoutScreenReducer, {
+        isResting: false,
+        finished: false,
+        currentDrill: 0,
+        videoModalVisible: false,
+    });
 
-    const [currentDrill, setCurrentDrill] = useState(0);
+
     const [workoutTime, setWorkoutTime] = useState("0");
     const [restTime, setRestTime] = useState("0");
     const [seconds, setSeconds] = useState("0");
     const [isRunning, setIsRunning] = useState(false);
-    const [isResting, setIsResting] = useState(false);
-    const [finished, setFinished] = useState(false);
-    const [videoModalVisible, setVideoModalVisible] = useState(false);
 
     useKeepAwake(); // Prevent the screen from sleeping
 
@@ -55,17 +61,19 @@ export default function workoutScreen() {
         isRunningRef.current = isRunning;
     }, [isRunning]);
 
-    // useEffect to reset isResting to false when the screen is focused
+
+    // useEffect to reset isResting and finished states to false when the screen is focused
     useFocusEffect(
         useCallback(() => {
             // This code runs when the screen is focused
-            setIsResting(false);
-            setFinished(false);
+            dispatch({ type: "SET_RESTING_FALSE" });
+            // setFinished(false);
+            state.finished && dispatch({ type: "TOGGLE_FINISHED" });
 
             return () => {
                 // This code runs when the screen goes out of focus
                 // Optional: Reset any states if needed when leaving the screen
-                setFinished(false);
+                state.finished && dispatch({ type: "TOGGLE_FINISHED" });
             };
         }, [])
     );
@@ -114,8 +122,8 @@ export default function workoutScreen() {
                     { length: windowWidth, offset: windowWidth * index, index }
                 )}
                 renderItem={({ item }) => <View style={{ width: windowWidth }} ><DrillCard style={styles.card}
-                    title={!isResting ? item.name : "Rest"}
-                    nextDrill={isResting ? getNextDrill() : undefined}
+                    title={!state.isResting ? item.name : "Rest"}
+                    nextDrill={state.isResting ? getNextDrill() : undefined}
                 /></View>}
             />)
     }
@@ -139,28 +147,27 @@ export default function workoutScreen() {
 
 
     const goToNextDrill = () => {
-        listRef.current?.scrollToIndex({ index: currentDrill + 1 });
-        setCurrentDrill(currentDrill + 1);
-        console.log(currentDrill);
+        listRef.current?.scrollToIndex({ index: state.currentDrill + 1 });
+        dispatch({ type: "INCREMENT_DRILL" });
     }
 
     const goToPreviousDrill = () => {
-        listRef.current?.scrollToIndex({ index: currentDrill - 1 });
-        setCurrentDrill(currentDrill - 1);
+        listRef.current?.scrollToIndex({ index: state.currentDrill - 1 });
+        dispatch({ type: "DECREMENT_DRILL" });
     }
 
     // Get the name of next drill
     const getNextDrill = () => {
-        if (currentDrill === drillCount - 1) {
+        if (state.currentDrill === drillCount - 1) {
             return "End of workout";
         } else {
-            return drills[currentDrill + 1].name;
+            return drills[state.currentDrill + 1].name;
         }
     }
 
     // Increment and decrement the workout and rest times
     const incrementWorkSeconds = () => {
-        setIsResting(false);
+        state.isResting && dispatch({ type: "TOGGLE_RESTING" });
         setWorkoutTime((parseInt(workoutTime) + 30).toString());
     }
 
@@ -182,27 +189,30 @@ export default function workoutScreen() {
     useEffect(() => {
         // if the seconds are zero and the current drill is less than the drill count and the isResting state is false
         // set the isResting state to true and set the seconds to 10
-        if (seconds === "0" && currentDrill < drillCount - 1 && !isResting) {
-            setIsResting(true);
+        if (seconds === "0" && state.currentDrill < drillCount - 1 && !state.isResting) {
+            // setIsResting(true);
+            dispatch({ type: "TOGGLE_RESTING" });
             setSeconds(restTime);
         }
         // if the seconds are zero and the current drill is less than the drill count and the isResting state is true
-        if (seconds === "0" && currentDrill < drillCount - 1 && isResting) {
-            setIsResting(false);
+        if (seconds === "0" && state.currentDrill < drillCount - 1 && state.isResting) {
+            // setIsResting(false);
+            dispatch({ type: "TOGGLE_RESTING" });
             goToNextDrill();
             setSeconds(workoutTime);
         }
         // if the seconds are zero and the current drill is equal to the drill count and the isResting state is false
         // ie the workout has finished
-        if (seconds === "0" && currentDrill === drillCount - 1 && !isResting) {
+        if (seconds === "0" && state.currentDrill === drillCount - 1 && !state.isResting) {
             // setIsResting(true);
             setIsRunning(false);
             setSeconds(restTime);
-            setFinished(true);
+            dispatch({ type: "TOGGLE_FINISHED" });
         }
         // if the seconds are zero and the current drill is equal to the drill count and the isResting state is true
-        if (seconds === "0" && currentDrill === drillCount - 1 && isResting) {
-            setIsResting(false);
+        if (seconds === "0" && state.currentDrill === drillCount - 1 && state.isResting) {
+            // setIsResting(false);
+            dispatch({ type: "TOGGLE_RESTING" });
             setSeconds(workoutTime);
         }
     }, [seconds])
@@ -213,20 +223,20 @@ export default function workoutScreen() {
     useEffect(() => {
         if (initialRender.current) {
             initialRender.current = false;
-        } else if (seconds === "0" && isRunning && currentDrill < drillCount - 1) {
+        } else if (seconds === "0" && isRunning && state.currentDrill < drillCount - 1) {
             playSingleBell();
             console.log("Sound played");
-        } else if (finished) {
+        } else if (state.finished) {
             playAlarm();
         }
-    }, [seconds, finished]);
+    }, [seconds, state.finished]);
 
 
     // User input and button functions
 
     // Set the time to the round time
     useEffect(() => {
-        if (!isResting) {
+        if (!state.isResting) {
             setSeconds(workoutTime);
         }
     }, [workoutTime])
@@ -248,29 +258,29 @@ export default function workoutScreen() {
 
     const handleClickReset = () => {
         setSeconds(workoutTime);
-        setFinished(false);
+        state.finished && dispatch({ type: "TOGGLE_FINISHED" });
     }
 
     // Disable the next and previous buttons when the current drill is at the beginning or end of the drill list
     const nextButtonDisabled = () => {
-        return currentDrill === drillCount - 1;
+        return state.currentDrill === drillCount - 1;
     }
 
     const previousButtonDisabled = () => {
-        return currentDrill === 0;
+        return state.currentDrill === 0;
     }
 
 
     return (
         <View style={styles.container} >
-            <VideoModal title={drills.length > 0 ? drills[currentDrill].name : "No drills"}
+            <VideoModal title={drills.length > 0 ? drills[state.currentDrill].name : "No drills"}
                 // videoUrl="https://bjj-world.com/wp-content/uploads/2018/06/Turtle-roll-escape.gif"
-                videoURL={drills.length > 0 ? drills[currentDrill].video_url : "https://bjj-world.com/wp-content/uploads/2018/06/Turtle-roll-escape.gif"}
-                visible={videoModalVisible}
-                onDismiss={() => setVideoModalVisible(false)}
+                videoURL={drills.length > 0 ? drills[state.currentDrill].video_url : "https://bjj-world.com/wp-content/uploads/2018/06/Turtle-roll-escape.gif"}
+                visible={state.videoModalVisible}
+                onDismiss={() => dispatch({type: "TOGGLE_VIDEO_MODAL"})}
             />
             <View style={styles.slideContainer}>
-                {!finished ? renderSlideDeck() : renderFinished()}
+                {!state.finished ? renderSlideDeck() : renderFinished()}
             </View>
             <View style={styles.buttonContainer}>
                 <IconButton disabled={previousButtonDisabled()} size={30} style={styles.button} rippleColor={colours.light} icon={'arrow-left-bold-outline'} iconColor={colours.light} containerColor={colours.accent} onPress={handleClickPrevious} />
@@ -303,7 +313,7 @@ export default function workoutScreen() {
                     <Button buttonColor={colours.primary} onPress={handleClickReset} mode='contained' >Reset</Button>
                 </View>
                 <View style={styles.button}>
-                    <Button buttonColor={colours.primary} onPress={() => setVideoModalVisible(true)} mode='contained' >Video</Button>
+                    <Button buttonColor={colours.primary} onPress={() => dispatch({type: "TOGGLE_VIDEO_MODAL"})} mode='contained' >Video</Button>
                 </View>
             </View>
         </View>
