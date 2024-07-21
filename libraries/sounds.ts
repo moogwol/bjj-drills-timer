@@ -12,7 +12,6 @@ const playSound = async (sound: any) => {
     try {
         await soundObject.loadAsync(sound);
         await soundObject.playAsync();
-        console.log("Sound played");
     } catch (error) {
         console.error("Error playing sound: ", error);
     }

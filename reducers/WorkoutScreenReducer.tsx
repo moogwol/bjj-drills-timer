@@ -1,6 +1,7 @@
 // Define the workout screen reducer
-type ActionType = "TOGGLE_RESTING"
-    | "TOGGLE_FINISHED"
+type ActionType = "SET_RESTING"
+    | "SET_FINISHED"
+    | "SET_NOT_FINISHED"
     | "SET_RESTING_FALSE"
     | "INCREMENT_DRILL"
     | "DECREMENT_DRILL"
@@ -20,12 +21,14 @@ interface WorkoutScreenAction {
 
 export const workoutScreenReducer = (state: WorkoutScreenState, action: WorkoutScreenAction): WorkoutScreenState => {
     switch (action.type) {
-        case "TOGGLE_RESTING":
+        case "SET_RESTING":
             return { ...state, isResting: !state.isResting };
         case "SET_RESTING_FALSE":
             return { ...state, isResting: false };
-        case "TOGGLE_FINISHED":
-            return { ...state, finished: !state.finished };
+        case "SET_FINISHED":
+            return { ...state, finished: true };
+            case "SET_NOT_FINISHED":
+            return { ...state, finished: false };
         case "INCREMENT_DRILL":
             return { ...state, currentDrill: state.currentDrill + 1 };
         case "DECREMENT_DRILL":

@@ -11,6 +11,7 @@ import { useFocusEffect } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
 import { VideoModal } from '@/components/VideoModal';
 import { workoutScreenReducer } from '@/reducers/WorkoutScreenReducer';
+import { CountdownReducer } from '@/reducers/CountdownReducer';
 
 
 const colours = useColours();
@@ -19,6 +20,7 @@ const colours = useColours();
 
 export default function workoutScreen() {
 
+    // States
     const [state, dispatch] = useReducer(workoutScreenReducer, {
         isResting: false,
         finished: false,
@@ -26,9 +28,18 @@ export default function workoutScreen() {
         videoModalVisible: false,
     });
 
+    const [countdownState, countdownDispatch] = useReducer(CountdownReducer, {
+        // seconds: "0",
+        workoutTime: "0",
+        restTime: "0",
+        // isResting: false,
+        // finished: false,
+        // isRunning: false,
+    });
 
-    const [workoutTime, setWorkoutTime] = useState("0");
-    const [restTime, setRestTime] = useState("0");
+
+    // const [workoutTime, setWorkoutTime] = useState("0");
+    // const [restTime, setRestTime] = useState("0");
     const [seconds, setSeconds] = useState("0");
     const [isRunning, setIsRunning] = useState(false);
 
@@ -68,12 +79,12 @@ export default function workoutScreen() {
             // This code runs when the screen is focused
             dispatch({ type: "SET_RESTING_FALSE" });
             // setFinished(false);
-            state.finished && dispatch({ type: "TOGGLE_FINISHED" });
+            dispatch({ type: "SET_NOT_FINISHED" });
 
             return () => {
                 // This code runs when the screen goes out of focus
                 // Optional: Reset any states if needed when leaving the screen
-                state.finished && dispatch({ type: "TOGGLE_FINISHED" });
+                dispatch({ type: "SET_NOT_FINISHED" });
             };
         }, [])
     );
@@ -105,10 +116,14 @@ export default function workoutScreen() {
                 // if the seconds are greater than zero, decrement the seconds by one
                 return (parseInt(prevSeconds) - 1).toString();
             });
-
         }, 1000);
         return () => clearInterval(interval);
     };
+
+
+
+
+
 
     // a function to render the slide deck of drills
     const renderSlideDeck = () => {
@@ -141,8 +156,10 @@ export default function workoutScreen() {
 
     // Start the countdown when the isRunning state is true
     useEffect(() => {
-        // isResting ? setSeconds(restTime) : setSeconds(workoutTime);
-        doCountDown(seconds);
+        // doCountDown(seconds);
+        if (isRunning) {
+            doCountDown(seconds);
+        }
     }, [isRunning]);
 
 
@@ -167,59 +184,80 @@ export default function workoutScreen() {
 
     // Increment and decrement the workout and rest times
     const incrementWorkSeconds = () => {
-        state.isResting && dispatch({ type: "TOGGLE_RESTING" });
-        setWorkoutTime((parseInt(workoutTime) + 30).toString());
+        dispatch({ type: "SET_RESTING_FALSE" });
+        countdownDispatch({
+            type: "SET_WORKOUT_TIME",
+            timeValue: (parseInt(countdownState.workoutTime) + 30).toString()
+        });
     }
 
     const decrementWorkSeconds = () => {
-        parseInt(workoutTime) >= 30 &&
-            setWorkoutTime((parseInt(workoutTime) - 30).toString());
+        parseInt(countdownState.workoutTime) >= 30 &&
+            // setWorkoutTime((parseInt(workoutTime) - 30).toString());
+            countdownDispatch({
+                type: "SET_WORKOUT_TIME",
+                timeValue: (parseInt(countdownState.workoutTime) - 30).toString()
+            });
     }
 
     const incrementRestSeconds = () => {
-        setRestTime((parseInt(restTime) + 10).toString());
+        // setRestTime((parseInt(restTime) + 10).toString());
+        countdownDispatch({
+            type: "SET_REST_TIME",
+            timeValue: (parseInt(countdownState.restTime) + 10).toString()
+        });
     }
 
     const decrementRestSeconds = () => {
-        parseInt(restTime) >= 10 &&
-            setRestTime((parseInt(restTime) - 10).toString());
-    }
+        // parseInt(restTime) >= 10 && setRestTime((parseInt(restTime) - 10).toString());
+        parseInt(countdownState.restTime) >= 10 &&
+            countdownDispatch({
+                type: "SET_REST_TIME",
+                timeValue: (parseInt(countdownState.restTime) - 10).toString()
+            });
+    };
 
-    // Switch between rest and drill countdowns
+    // Logic for switching between rest, workout and finished states
+
     useEffect(() => {
         // if the seconds are zero and the current drill is less than the drill count and the isResting state is false
-        // set the isResting state to true and set the seconds to 10
+        // ie the drill has finished and it's time to rest
         if (seconds === "0" && state.currentDrill < drillCount - 1 && !state.isResting) {
-            // setIsResting(true);
-            dispatch({ type: "TOGGLE_RESTING" });
-            setSeconds(restTime);
+            console.log("Resting");
+            dispatch({ type: "SET_RESTING" });
+            setSeconds(countdownState.restTime);
+
         }
-        // if the seconds are zero and the current drill is less than the drill count and the isResting state is true
+        // }, [seconds, state.currentDrill, drillCount, state.isResting]);
+    }, [seconds]);
+
+    // if the seconds are zero and the current drill is less than the drill count and the isResting state is true
+    // go to the next drill and set the seconds to the workout time
+    // ie the rest time has finished and it's time to start the next drill
+    useEffect(() => {
         if (seconds === "0" && state.currentDrill < drillCount - 1 && state.isResting) {
             // setIsResting(false);
-            dispatch({ type: "TOGGLE_RESTING" });
+            console.log("Drill time");
+            dispatch({ type: "SET_RESTING_FALSE" });
             goToNextDrill();
-            setSeconds(workoutTime);
+            setSeconds(countdownState.workoutTime);
         }
-        // if the seconds are zero and the current drill is equal to the drill count and the isResting state is false
-        // ie the workout has finished
+    }, [seconds]);
+
+
+    // if the seconds are zero and the current drill is equal to the drill count and the isResting state is false
+    // ie the workout has finished
+    useEffect(() => {
         if (seconds === "0" && state.currentDrill === drillCount - 1 && !state.isResting) {
-            // setIsResting(true);
+            console.log("Workout finished");
             setIsRunning(false);
-            setSeconds(restTime);
-            dispatch({ type: "TOGGLE_FINISHED" });
+            dispatch({ type: "SET_FINISHED" });
         }
-        // if the seconds are zero and the current drill is equal to the drill count and the isResting state is true
-        if (seconds === "0" && state.currentDrill === drillCount - 1 && state.isResting) {
-            // setIsResting(false);
-            dispatch({ type: "TOGGLE_RESTING" });
-            setSeconds(workoutTime);
-        }
-    }, [seconds])
+    }, [seconds]);
 
 
 
-    // Play a sound when the seconds are zero except on the initial render  
+    // Play a sound when the seconds are zero except on the initial render 
     useEffect(() => {
         if (initialRender.current) {
             initialRender.current = false;
@@ -234,12 +272,12 @@ export default function workoutScreen() {
 
     // User input and button functions
 
-    // Set the time to the round time
+    // Set the time to the round time when the workout time is changed
     useEffect(() => {
         if (!state.isResting) {
-            setSeconds(workoutTime);
+            setSeconds(countdownState.workoutTime);
         }
-    }, [workoutTime])
+    }, [countdownState.workoutTime]);
 
 
     const handleClickNext = () => {
@@ -257,8 +295,12 @@ export default function workoutScreen() {
     }
 
     const handleClickReset = () => {
-        setSeconds(workoutTime);
-        state.finished && dispatch({ type: "TOGGLE_FINISHED" });
+        // setSeconds(workoutTime);
+        countdownDispatch({
+            type: "SET_WORKOUT_TIME",
+            timeValue: countdownState.workoutTime
+        });
+        dispatch({ type: "SET_NOT_FINISHED" });
     }
 
     // Disable the next and previous buttons when the current drill is at the beginning or end of the drill list
@@ -274,10 +316,9 @@ export default function workoutScreen() {
     return (
         <View style={styles.container} >
             <VideoModal title={drills.length > 0 ? drills[state.currentDrill].name : "No drills"}
-                // videoUrl="https://bjj-world.com/wp-content/uploads/2018/06/Turtle-roll-escape.gif"
                 videoURL={drills.length > 0 ? drills[state.currentDrill].video_url : "https://bjj-world.com/wp-content/uploads/2018/06/Turtle-roll-escape.gif"}
                 visible={state.videoModalVisible}
-                onDismiss={() => dispatch({type: "TOGGLE_VIDEO_MODAL"})}
+                onDismiss={() => dispatch({ type: "TOGGLE_VIDEO_MODAL" })}
             />
             <View style={styles.slideContainer}>
                 {!state.finished ? renderSlideDeck() : renderFinished()}
@@ -294,14 +335,18 @@ export default function workoutScreen() {
             <View style={styles.timeInputContainer}>
                 <View style={styles.timeInput} >
                     <Text>Round</Text>
-                    <IconButton size={30} icon={'minus-thick'} onPress={decrementWorkSeconds} disabled={parseInt(workoutTime) < 30} />
-                    <Text >{formattedTime(parseInt(workoutTime))}</Text>
+                    <IconButton size={30} icon={'minus-thick'} onPress={decrementWorkSeconds} disabled={parseInt(countdownState.workoutTime) < 30} />
+                    <Text >{formattedTime(parseInt(countdownState.workoutTime))}</Text>
                     <IconButton size={30} icon={'plus-thick'} onPress={incrementWorkSeconds} />
                 </View>
                 <View style={styles.timeInput}>
                     <Text>Rest</Text>
-                    <IconButton size={30} icon={'minus-thick'} onPress={decrementRestSeconds} disabled={parseInt(restTime) < 10} />
-                    <Text >{formattedTime(parseInt(restTime))}</Text>
+                    <IconButton size={30}
+                        icon={'minus-thick'}
+                        onPress={decrementRestSeconds}
+                        disabled={parseInt(countdownState.restTime) < 10}
+                    />
+                    <Text >{formattedTime(parseInt(countdownState.restTime))}</Text>
                     <IconButton size={30} icon={'plus-thick'} onPress={incrementRestSeconds} />
                 </View>
             </View>
@@ -313,7 +358,7 @@ export default function workoutScreen() {
                     <Button buttonColor={colours.primary} onPress={handleClickReset} mode='contained' >Reset</Button>
                 </View>
                 <View style={styles.button}>
-                    <Button buttonColor={colours.primary} onPress={() => dispatch({type: "TOGGLE_VIDEO_MODAL"})} mode='contained' >Video</Button>
+                    <Button buttonColor={colours.primary} onPress={() => dispatch({ type: "TOGGLE_VIDEO_MODAL" })} mode='contained' >Video</Button>
                 </View>
             </View>
         </View>
